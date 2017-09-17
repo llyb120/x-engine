@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+                           
+    "target": "ESNEXT",                          
+    "module": "commonjs",                     
+    "lib": ["es5","es6","es7","esnext"],                             
+    "allowJs": true, 
+    
+    
+    
+    "outDir": "./build",                        
+    "rootDir": "./src",                       
+    
+    
+    "importHelpers": true,                 
+    "downlevelIteration": true,            
+                                              
+            
+    "strict": true ,                           
+    
+    "inlineSourceMap": true,
+    
+    
+                                              
+                       
+    
+    
+    
+    
+                                              
+               
+    
+    
+    
+    
+    
+    
+    
+                                              
+                      
+    
+    
+    
+    
+                                              
+                    
+    "experimentalDecorators": true,        
+    "emitDecoratorMetadata": true         
+  },
+  "exclude": [
+    "./include",
+    "./node_modules",
+    "./dev",
+    "./bundle",
+    "./build",
+    "./tools"
+  ]
+}
