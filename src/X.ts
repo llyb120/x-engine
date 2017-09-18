@@ -1,7 +1,8 @@
 import { getParameterNames } from './utils';
 import { Express, Request, Response } from "express";
 import { Controller, ControllerConfig, ControllerSet, InjectParams } from "./api";
-
+import * as bodyParser from "body-parser";
+import * as cookieParser from "cookie-parser";
 
 
 export class XEngineManager {
@@ -21,6 +22,7 @@ export class XEngineManager {
                 req: req,
                 res: res
             };
+            var allparams = Object.assign(req.params,req.query,req.body);
             var callParams = await Promise.all(params.map(async param => {
                 if (this.defaultInjects[param]) {
                     return await this.defaultInjects[param](ctx);
@@ -28,12 +30,16 @@ export class XEngineManager {
                 if (config.inject && config.inject[param]) {
                     return await config.inject[param](ctx);
                 }
+                if(allparams[param]){
+                    return allparams[param];
+                }
                 return undefined;
             }));
-            // console.log(callParams);
-            // return;
             var result = await fn.apply(controller.ctrl.prototype, callParams);
             try {
+                for(const [key,val] of Object.entries(req.cookies)){
+                    res.cookie(key,val);
+                }
                 var render;
                 if (render = config.render) {
                     res.render(render.replace(":method", key), result);
@@ -56,7 +62,10 @@ export class XEngineManager {
     startExpressServer(app: Express) {
         this.app = app;
 
-        console.log(this.controllers);
+        //bodyParser
+        app.use(bodyParser.urlencoded({extended : false}));
+        app.use(cookieParser())
+
         this.controllers.forEach(controller => {
             var keys = Object.getOwnPropertyNames(controller.ctrl.prototype);
             keys.forEach(key => {
@@ -130,5 +139,17 @@ X.registerDefaultInject({
     },
     res(ctx) {
         return ctx.res;
+    },
+    body(ctx){
+        return ctx.req.body;
+    },
+    cookie(ctx){
+        return ctx.req.cookies;
+    },
+    session(ctx){
+        return ctx.req.session;
+    },
+    query(ctx){
+        return ctx.req.query;
     }
 });

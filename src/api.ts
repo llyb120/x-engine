@@ -5,7 +5,8 @@ export interface ControllerConfig{
     allowMethod? : ('get' | 'post')[];
     inject? : any;
     render? : string;
-    type? : "html" | "json"
+    type? : "html" | "json",
+    authorization? : string[]
 }
 
 export type Controller<T> = new() => T;

@@ -12,13 +12,12 @@ const TEMPLATE = path.resolve(__dirname,'../view');
             return 1;
         }
     },
-    // render : TEMPLATE + '/:method.html',
-    type :　'json',
-    allowMethod : ["get"]
+    render : TEMPLATE + '/:method.html',
+    // type :　'json',
 })
 class ctrl1 {
-    test1(req : Request,res : Response,fuck : string){
-        console.log(fuck)
+    test1(req : Request,res : Response,fuck : string,query,body,c : string){
+        console.log(query,body,c);
         return {
             guichu : 123321
         }
