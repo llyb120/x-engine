@@ -121,19 +121,19 @@ export class XEngine {
      */
     Controller<T>(config: ControllerConfig) {
         return function (target: Controller<T>) {
-            XE.registerController(target, config);
+            V.registerController(target, config);
         }
     }
 
 }
 
 
-export const XE = new XEngine();
+export const V = new XEngine();
 
 /**
  * 注册默认的变量
  */
-XE.registerDefaultInject({
+V.registerDefaultInject({
     req(ctx) {
         return ctx.req;
     },
