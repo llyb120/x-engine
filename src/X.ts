@@ -1,4 +1,4 @@
-import { getParameterNames } from './utils';
+import { getParameterNames, GetAllParams } from './utils';
 import { Express, Request, Response } from "express";
 import { Controller, ControllerConfig, ControllerSet, InjectParams } from "./api";
 import * as bodyParser from "body-parser";
@@ -22,7 +22,7 @@ export class XEngineManager {
                 req: req,
                 res: res
             };
-            var allparams = Object.assign(req.params,req.query,req.body);
+            var allparams = GetAllParams(req);
             var callParams = await Promise.all(params.map(async param => {
                 if (this.defaultInjects[param]) {
                     return await this.defaultInjects[param](ctx);

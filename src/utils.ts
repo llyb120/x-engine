@@ -1,3 +1,4 @@
+import { Request } from 'express';
 export function getParameterNames(fn: Function) {
     if (typeof fn !== 'function') return [];
     var COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -7,4 +8,8 @@ export function getParameterNames(fn: Function) {
     return result === null
         ? []
         : result;
+}
+
+export function GetAllParams(req : Request){
+    return Object.assign(req.params,req.query,req.body); 
 }
