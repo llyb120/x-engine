@@ -5,7 +5,7 @@ import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 
 
-export class XEngineManager {
+export class XEngine {
     private app: Express;
     private defaultInjects: any = {};
     private controllers: ControllerSet<any>[] = [];
@@ -121,19 +121,19 @@ export class XEngineManager {
      */
     Controller<T>(config: ControllerConfig) {
         return function (target: Controller<T>) {
-            X.registerController(target, config);
+            XE.registerController(target, config);
         }
     }
 
 }
 
 
-export const X = new XEngineManager();
+export const XE = new XEngine();
 
 /**
  * 注册默认的变量
  */
-X.registerDefaultInject({
+XE.registerDefaultInject({
     req(ctx) {
         return ctx.req;
     },

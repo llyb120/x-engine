@@ -1,4 +1,4 @@
-import { X } from "../X";
+import { XE as X } from "../X";
 import { Request, Response } from "express";
 import * as express from "express";
 import * as path from "path";
