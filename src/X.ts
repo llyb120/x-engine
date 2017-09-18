@@ -35,10 +35,10 @@ export class XEngineManager {
             var result = await fn.apply(controller.ctrl.prototype, callParams);
             try {
                 var render;
-                if(render = config.render){
-                    res.render(render.replace(":method",key),result);
+                if (render = config.render) {
+                    res.render(render.replace(":method", key), result);
                 }
-                else if(config.type == 'json'){
+                else if (config.type == 'json') {
                     res.header("Content-type: application/json");
                     res.send(JSON.stringify(result));
                 }
@@ -60,7 +60,23 @@ export class XEngineManager {
         this.controllers.forEach(controller => {
             var keys = Object.getOwnPropertyNames(controller.ctrl.prototype);
             keys.forEach(key => {
-                app.get(controller.config.url.replace(":method", key), this.generateExpressFacotry(controller, key));
+                var args = [controller.config.url.replace(":method", key), this.generateExpressFacotry(controller, key)]
+                //如果存在allowMethod
+                if (controller.config.allowMethod) {
+                    controller.config.allowMethod.forEach(method => {
+                        switch (method) {
+                            case 'get':
+                                app.get.apply(app, args);
+                                break;
+                            case 'post':
+                                app.post.apply(app, args);
+                                break;
+                        }
+                    })
+                }
+                else {
+                    app.all.apply(app, args);
+                }
             });
         })
     }
@@ -94,9 +110,9 @@ export class XEngineManager {
      * 常用装饰器
      * @param config c
      */
-    Controller<T>(config : ControllerConfig){
-        return function(target : Controller<T>){
-            X.registerController(target,config);
+    Controller<T>(config: ControllerConfig) {
+        return function (target: Controller<T>) {
+            X.registerController(target, config);
         }
     }
 

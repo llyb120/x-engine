@@ -13,7 +13,8 @@ const TEMPLATE = path.resolve(__dirname,'../view');
         }
     },
     // render : TEMPLATE + '/:method.html',
-    type :　'json'
+    type :　'json',
+    allowMethod : ["get"]
 })
 class ctrl1 {
     test1(req : Request,res : Response,fuck : string){
