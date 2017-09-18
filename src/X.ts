@@ -12,6 +12,7 @@ export class XEngineManager {
     private generateExpressFacotry<T>(controller: ControllerSet<T>, key: string) {
         var fn = controller.ctrl.prototype[key];
         var params: string[] = getParameterNames(fn);
+        let config = controller.config;
 
         return async (req: Request, res: Response, next?: Function) => {
             //构造参数
@@ -24,16 +25,24 @@ export class XEngineManager {
                 if (this.defaultInjects[param]) {
                     return await this.defaultInjects[param](ctx);
                 }
-                if (controller.config.inject && controller.config.inject[param]) {
-                    return await controller.config.inject[param](ctx);
+                if (config.inject && config.inject[param]) {
+                    return await config.inject[param](ctx);
                 }
                 return undefined;
             }));
             // console.log(callParams);
             // return;
-            await fn.apply(controller.ctrl.prototype, callParams);
+            var result = await fn.apply(controller.ctrl.prototype, callParams);
             try {
-                if (next) {
+                var render;
+                if(render = config.render){
+                    res.render(render.replace(":method",key),result);
+                }
+                else if(config.type == 'json'){
+                    res.header("Content-type: application/json");
+                    res.send(JSON.stringify(result));
+                }
+                else if (next) {
                     next();
                 }
                 // res.end();
