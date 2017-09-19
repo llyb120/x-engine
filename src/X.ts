@@ -1,6 +1,6 @@
 import { getParameterNames, GetAllParams } from './utils';
 import { Express, Request, Response } from "express";
-import { Controller, ControllerConfig, ControllerSet, InjectParams } from "./api";
+import { Controller, ControllerConfig, ControllerSet, InjectParams, ExpressConfig } from './api';
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 
@@ -59,8 +59,16 @@ export class XEngine {
         };
     }
 
-    startExpressServer(app: Express) {
-        this.app = app;
+    /**
+     * 启动操作
+     * @param app 
+     */
+    startExpressServer(config : ExpressConfig) {
+        if(!config.app){
+            throw new Error("没有传入实例！");
+        }
+
+        const app = this.app = config.app;
 
         //bodyParser
         app.use(bodyParser.urlencoded({extended : false}));
@@ -147,7 +155,7 @@ V.registerDefaultInject({
         return ctx.req.cookies;
     },
     session(ctx){
-        return ctx.req.session;
+        return (ctx.req as any).session;
     },
     query(ctx){
         return ctx.req.query;

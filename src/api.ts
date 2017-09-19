@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, Express } from 'express';
 import { Request } from 'express';
 export interface ControllerConfig{
     url : string;
@@ -26,4 +26,10 @@ export interface ExpressContext{
 
 export interface InjectParams{
     [key : string] : (ctx : ExpressContext) => any
+}
+
+
+export interface ExpressConfig{
+    app : Express,
+    
 }
