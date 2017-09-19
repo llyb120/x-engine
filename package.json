@@ -2,7 +2,7 @@
   "name": "x-engine",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "./build/index.js",
   "dependencies": {
     "body-parser": "^1.18.1",
     "cookie-parser": "^1.4.3",
@@ -26,5 +26,8 @@
     "controller"
   ],
   "author": "bin",
-  "license": "MIT"
+  "license": "MIT",
+  "module" : "./build/index",
+  "typings" : "./src/index.ts",
+  "types" : "./src/index.ts"
 }
