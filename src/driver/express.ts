@@ -1,0 +1,140 @@
+import { XEngine } from '../X';
+import { ExpressConfig, Connection, HttpController, ControllerSet } from '../api';
+import { Express, Request, Response } from 'express';
+import { BaseAdapter } from './base';
+import { Server } from 'http';
+import * as bodyParser from "body-parser";
+import * as cookieParser from "cookie-parser";
+import { GetAllParams, getParameterNames } from '../utils';
+import { WebsocketAdapter } from './websocket';
+
+
+export class ExpressAdapter extends BaseAdapter{
+    public app : Express;
+    public server: Server;
+    
+    constructor(
+        public context : XEngine,
+        public config : ExpressConfig
+    ){
+        super();
+    }
+
+    start(){
+        if (this.config.server) {
+            this.server = this.config.server;
+        }
+
+        const app = this.app = this.config.app;
+
+        if (this.config.crossDomain) {
+            app.all('*', function (req, res, next) {
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "X-Requested-With");
+                res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+                // res.header("X-Powered-By", ' 3.2.1');
+                // res.header("Content-Type", "application/json;charset=utf-8");
+                next();
+            });
+        }
+
+        //bodyParser
+        app.use(bodyParser.urlencoded({ extended: false }));
+        app.use(cookieParser())
+
+        var set = new Set();
+        this.context.controllers.forEach(controller => {
+            if(controller.config.type == Connection.HTTP){
+                var keys = Object.getOwnPropertyNames(controller.ctrl.prototype);
+                const config = controller.config as HttpController;
+                keys.forEach(key => {
+                    var args = [config.url.replace(":method", key), this.generateExpressFacotry(controller, key)]
+                    //如果存在allowMethod
+                    if (config.allowMethod) {
+                        config.allowMethod.forEach(method => {
+                            switch (method) {
+                                case 'get':
+                                    app.get.apply(app, args);
+                                    break;
+                                case 'post':
+                                    app.post.apply(app, args);
+                                    break;
+                            }
+                        })
+                    }
+                    else {
+                        app.all.apply(app, args);
+                    }
+                });
+            }
+            // switch (controller.config.type) {
+            //     case Connection.WebSocket:
+            //         this.socketControllers.push(controller);
+            //         if (set.has(Connection.WebSocket)) {
+            //             return;
+            //         }
+            //         set.add(Connection.WebSocket);
+            //         this.startWebSocket();
+            //         break;
+
+            //     case Connection.HTTP:
+                    
+            //         break;
+            // }
+
+        })
+    }
+
+
+    private generateExpressFacotry<T>(controller: ControllerSet<T>, key: string) {
+        var fn = controller.ctrl.prototype[key];
+        var params: string[] = getParameterNames(fn);
+        let config = controller.config as HttpController;
+
+        return async (req: Request, res: Response, next?: Function) => {
+            //构造参数
+            //先计算default
+            var ctx = {
+                req: req,
+                res: res
+            };
+            var allparams = GetAllParams(req);
+            var callParams = await Promise.all(params.map(async param => {
+                if (param in this.context.defaultInjects[Connection.HTTP]) {
+                    return await (this.context.defaultInjects[Connection.HTTP] as any)[param](ctx);
+                }
+                if (config.inject && config.inject[param]) {
+                    return await config.inject[param](ctx);
+                }
+                if (allparams[param]) {
+                    return allparams[param];
+                }
+                return undefined;
+            }));
+            var result = await fn.apply(controller.ctrl.prototype, callParams);
+            try {
+                for (const [key, val] of Object.entries(req.cookies)) {
+                    res.cookie(key, val);
+                }
+                var render;
+                if (render = config.render) {
+                    res.render(render.replace(":method", key), result);
+                }
+                else if (config.dataType == 'json') {
+                    res.header("Content-type: application/json");
+                    res.send(JSON.stringify(result));
+                }
+                else if(result){
+                    res.send(result + "");
+                }
+                else if (next) {
+                    next();
+                }
+                // res.end();
+            }
+            catch (e) {
+                console.log(e, "这个错误不影响运行，请不要担心");
+            }
+        };
+    }
+}

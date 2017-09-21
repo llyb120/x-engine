@@ -1,17 +1,19 @@
 import { Response, Express } from 'express';
 import { Request } from 'express';
-import { Server } from 'http';
+import { Server, IncomingMessage } from 'http';
+import * as WebSocket from 'ws';
 
 export enum Connection{
-    WebSocket,
-    SocketIO,
-    HTTP
+    WebSocket = 'websocket',
+    SocketIO = 'socket.io',
+    HTTP = 'http'
 }
 
 export type SocketController = {
     type : Connection;
     //必须提供
     url? : string;
+    inject? : any;
 }
 
 export interface HttpController {
@@ -42,14 +44,22 @@ export interface ExpressContext{
     res : Response
 }
 
+export interface WebSocketContext{
+    req : IncomingMessage;
+    ws : WebSocket;
+    message : any;
+    error : Error;
+}
+
 export interface InjectParams{
-    [key : string] : (ctx : ExpressContext) => any
+    [key : string] : (ctx : ExpressContext | WebSocketContext) => any
 }
 
 
 export interface XEngineConfig{
     app? : any;
     server? : Server;
+    socket? : Connection;
 }
 
 export interface ExpressConfig extends XEngineConfig{

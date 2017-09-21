@@ -8,6 +8,8 @@ import * as http from "http"
 import * as nunjucks from "nunjucks";
 import { Connection } from '../api';
 
+import * as should from "should";
+
 const TEMPLATE = path.resolve(__dirname, '../view');
 
 @X.Controller({
@@ -18,11 +20,11 @@ const TEMPLATE = path.resolve(__dirname, '../view');
             return 1;
         }
     },
-    render: TEMPLATE + '/:method.html',
+    // render: TEMPLATE + '/:method.html',
     //dataType : "json";
 })
 class ctrl1 {
-    test1(req: Request, res: Response, fuck: string, query : any, body : any, c: string) {
+    test1(req: Request, res: Response, fuck: string, query: any, body: any, c: string) {
         console.log(query, body, c);
         return {
             guichu: 123321
@@ -31,7 +33,7 @@ class ctrl1 {
     }
 
     test2(res: Response) {
-
+        return 123;
     }
 
 
@@ -42,29 +44,34 @@ class ctrl1 {
 
 @X.Controller({
     type: Connection.WebSocket,
-    url : "/liaoyang"
+    url: "/liaoyang"
 })
 class GameController {
 
-    onConnect(){
+    onConnect() {
         console.log("oh i'm coming");
     }
 
-    onMessage(){
-        
+    onMessage(ws: WebSocket, req: any, message: string) {
+        console.log("i got some message")
+        return 'pong';
+        // ws.send("pong");
     }
 
 
 }
 
 
-var app = express();
 
-var env = nunjucks.configure(TEMPLATE, {
-    autoescape: true,
-    express: app,
-    noCache: true
-});
+
+// const server = http.createServer(app);
+
+// X.startExpressServer({
+//     app: app,
+//     server: server,
+//     crossDomain: true
+// });
+// server.listen(8080);
 
 
 // console.log('server is listing on 800');
@@ -76,22 +83,53 @@ describe('test', () => {
      */
     it("should boot success", (done) => {
         try {
+            var app = express();
+            var env = nunjucks.configure(TEMPLATE, {
+                autoescape: true,
+                express: app,
+                noCache: true
+            });
             const server = http.createServer(app);
 
             X.startExpressServer({
                 app: app,
                 server: server,
-                crossDomain : true
+                crossDomain: true,
+                socket : Connection.WebSocket
             });
-         
             server.listen(8080);
-
             done();
 
         } catch (e) {
             should.not.exist(e);
         }
     });
+
+
+    let client: WebSocket;
+
+    it("should connect success", (done) => {
+        client = new WebSocket("ws://127.0.0.1:8080/liaoyang");
+        setTimeout(() => {
+            should.exist(client.readyState);
+            client.readyState.should.eql(WebSocket.OPEN);
+            done();
+        }, 500)
+
+    });
+
+    it("should get some message", (done) => {
+        client.onmessage = function (msg) {
+            should.exist(msg);
+            msg.data.should.eql('pong');
+            done();
+        }
+        client.send("ping");
+        // done()
+
+    })
+
+
 
 
 
