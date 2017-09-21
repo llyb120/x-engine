@@ -8,6 +8,7 @@ import { getParameterNames } from '../utils';
 export class WebsocketAdapter extends BaseAdapter{
     public wss : WebSocket.Server;
     private socketControllers: ControllerSet<any>[] = [];
+    private isStarted = false;
     
     constructor(
         public context : XEngine,
@@ -31,6 +32,10 @@ export class WebsocketAdapter extends BaseAdapter{
     }
 
     start(){
+        if(this.isStarted){
+            return false;
+        }
+        this.isStarted = true;
         this.collectControllers();
         
         const wss = this.wss = new WebSocket.Server({ server: this.config.server });

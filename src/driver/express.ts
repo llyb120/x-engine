@@ -12,7 +12,9 @@ import { WebsocketAdapter } from './websocket';
 export class ExpressAdapter extends BaseAdapter{
     public app : Express;
     public server: Server;
-    
+    private isStarted = false;
+
+
     constructor(
         public context : XEngine,
         public config : ExpressConfig
@@ -21,6 +23,11 @@ export class ExpressAdapter extends BaseAdapter{
     }
 
     start(){
+        if(this.isStarted){
+            return;
+        }
+
+        this.isStarted = true;
         if (this.config.server) {
             this.server = this.config.server;
         }
@@ -67,20 +74,6 @@ export class ExpressAdapter extends BaseAdapter{
                     }
                 });
             }
-            // switch (controller.config.type) {
-            //     case Connection.WebSocket:
-            //         this.socketControllers.push(controller);
-            //         if (set.has(Connection.WebSocket)) {
-            //             return;
-            //         }
-            //         set.add(Connection.WebSocket);
-            //         this.startWebSocket();
-            //         break;
-
-            //     case Connection.HTTP:
-                    
-            //         break;
-            // }
 
         })
     }

@@ -41,7 +41,6 @@ class ctrl1 {
 
 
 
-
 @X.Controller({
     type: Connection.WebSocket,
     url: "/liaoyang"
@@ -49,11 +48,9 @@ class ctrl1 {
 class GameController {
 
     onConnect() {
-        console.log("oh i'm coming");
     }
 
     onMessage(ws: WebSocket, req: any, message: string) {
-        console.log("i got some message")
         return 'pong';
         // ws.send("pong");
     }
