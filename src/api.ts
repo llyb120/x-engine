@@ -1,13 +1,31 @@
 import { Response, Express } from 'express';
 import { Request } from 'express';
-export interface ControllerConfig{
+import { Server } from 'http';
+
+export enum Connection{
+    WebSocket,
+    SocketIO,
+    HTTP
+}
+
+export type SocketController = {
+    type : Connection;
+    //必须提供
+    url? : string;
+}
+
+export interface HttpController {
+    type : Connection;
     url : string;
     allowMethod? : ('get' | 'post')[];
     inject? : any;
     render? : string;
-    type? : "html" | "json",
+    dataType? : "html" | "json";
+    // type? : "html" | "json",
     authorization? : string[]
 }
+
+export type ControllerConfig = SocketController | HttpController;
 
 export type Controller<T> = new() => T;
 
@@ -29,7 +47,12 @@ export interface InjectParams{
 }
 
 
-export interface ExpressConfig{
+export interface XEngineConfig{
+    app? : any;
+    server? : Server;
+}
+
+export interface ExpressConfig extends XEngineConfig{
     app : Express,
-    
+    crossDomain? : boolean;
 }
