@@ -92,7 +92,6 @@ describe('test', () => {
                 app: app,
                 server: server,
                 crossDomain: true,
-                socket : Connection.WebSocket
             });
             server.listen(8080);
             done();

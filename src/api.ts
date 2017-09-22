@@ -59,7 +59,7 @@ export interface InjectParams{
 export interface XEngineConfig{
     app? : any;
     server? : Server;
-    socket? : Connection;
+    socket? : Connection[];
 }
 
 export interface ExpressConfig extends XEngineConfig{

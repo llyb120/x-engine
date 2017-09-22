@@ -55,6 +55,9 @@ export class ExpressAdapter extends BaseAdapter{
                 var keys = Object.getOwnPropertyNames(controller.ctrl.prototype);
                 const config = controller.config as HttpController;
                 keys.forEach(key => {
+                    //私有方法禁止访问
+                    if(key[0] == '_') return;
+                    
                     var args = [config.url.replace(":method", key), this.generateExpressFacotry(controller, key)]
                     //如果存在allowMethod
                     if (config.allowMethod) {

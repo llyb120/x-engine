@@ -54,7 +54,7 @@ export class XEngine {
         this.expressAdapter.start();
 
         //websocket
-        if (config.socket == Connection.WebSocket) {
+        if(this.controllers.some(item => item.config.type == Connection.WebSocket)){
             this.websocketAdapter = new WebsocketAdapter(this, config);
             this.websocketAdapter.start();
         }
