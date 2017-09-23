@@ -10,15 +10,15 @@ export class WebsocketAdapter extends BaseAdapter{
     private socketControllers: ControllerSet<any>[] = [];
     private isStarted = false;
     
-    constructor(
-        public context : XEngine,
-        //以后追加koa
-        public config : ExpressConfig,
+    // constructor(
+    //     public context : XEngine,
+    //     //以后追加koa
+    //     public config : ExpressConfig,
 
-    ){
-        super();
+    // ){
+    //     super();
         
-    }
+    // }
 
     /**
      * 收集需要的控制器
