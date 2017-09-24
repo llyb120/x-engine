@@ -109,7 +109,8 @@ export class WebsocketAdapter extends BaseAdapter{
             const ctx = {
                 req: req,
                 ws: ws,
-                message: message
+                message: message,
+                wss : this.wss
             };
             // var allparams = GetAllParams(req);
             var callParams = params.length ? await Promise.all(params.map(async param => {

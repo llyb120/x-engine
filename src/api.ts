@@ -49,6 +49,7 @@ export interface WebSocketContext{
     ws : WebSocket;
     message : any;
     error : Error;
+    wss : WebSocket.Server
 }
 
 export interface InjectParams{
