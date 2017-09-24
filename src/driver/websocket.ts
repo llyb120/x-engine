@@ -5,11 +5,11 @@ import * as WebSocket from 'ws';
 import { IncomingMessage } from 'http';
 import { getParameterNames } from '../utils';
 
-export class WebsocketAdapter extends BaseAdapter{
-    public wss : WebSocket.Server;
+export class WebsocketAdapter extends BaseAdapter {
+    public wss: WebSocket.Server;
     private socketControllers: ControllerSet<any>[] = [];
     private isStarted = false;
-    
+
     // constructor(
     //     public context : XEngine,
     //     //以后追加koa
@@ -17,31 +17,31 @@ export class WebsocketAdapter extends BaseAdapter{
 
     // ){
     //     super();
-        
+
     // }
 
     /**
      * 收集需要的控制器
      */
-    collectControllers(){
+    collectControllers() {
         this.context.controllers.forEach(controller => {
-            if(controller.config.type === Connection.WebSocket){
+            if (controller.config.type === Connection.WebSocket) {
                 this.socketControllers.push(controller);
             }
         });
     }
 
-    start(){
-        if(this.isStarted){
+    start() {
+        if (this.isStarted) {
             return false;
         }
         this.isStarted = true;
         this.collectControllers();
-        
+
         const wss = this.wss = new WebSocket.Server({ server: this.config.server });
         const factoryMap = new WeakMap<Function, Function>();
         //事件分发
-        const each = (functionName: string, ws: WebSocket, req: IncomingMessage, message?: any,error? : Error) => {
+        const each = (functionName: string, ws: WebSocket, req: IncomingMessage, message?: any, error?: Error) => {
             this.socketControllers.forEach(async controller => {
                 const config = controller.config as SocketController;
                 //如果没有，则分发
@@ -56,16 +56,16 @@ export class WebsocketAdapter extends BaseAdapter{
                         }
                         const result = await factory.call(this, config, ws, req, message);
                         // const factory = factoryMap.get(fn) || this.generateWebSocketFactory(fn);
-                        if(result){
-                            try{
-                                if(typeof result == 'object'){
+                        if (result) {
+                            try {
+                                if (typeof result == 'object') {
                                     ws.send(JSON.stringify(result));
                                 }
-                                else{
+                                else {
                                     ws.send(result);
                                 }
                             }
-                            catch(e){
+                            catch (e) {
 
                             }
                         }
@@ -76,8 +76,15 @@ export class WebsocketAdapter extends BaseAdapter{
         }
         // this.webSocketUsers = new WeakMap;
 
+        const heartbeat = function () {
+            this.isAlive = true;
+        }
+
         wss.on('connection', (ws, req) => {
             each('onConnect', ws, req);
+
+            //断线保护
+            ws.on("pong", heartbeat);
 
             ws.on('message', function incoming(message) {
                 each('onMessage', ws, req, message);
@@ -85,9 +92,15 @@ export class WebsocketAdapter extends BaseAdapter{
             });
 
             ws.on("error", (error) => {
-                each('onError',ws,req,undefined,error);
+                each('onError', ws, req, undefined, error);
             });
 
+            //劫持API
+            const fn = ws.terminate;
+            ws.terminate = function () {
+                fn.call(ws);
+                each("onClose", ws, req);
+            }
 
         });
 
@@ -97,6 +110,17 @@ export class WebsocketAdapter extends BaseAdapter{
         wss.on("error", () => {
             console.log("oh shit web socket error");
         });
+
+
+        //增加防断线机制
+        const interval = setInterval(function ping() {
+            wss.clients.forEach(function (ws) {
+                if ((ws as any).isAlive === false) return ws.terminate();
+
+                (ws as any).isAlive = false;
+                ws.ping('', false, true);
+            });
+        }, 30000);
     }
 
 
@@ -110,7 +134,7 @@ export class WebsocketAdapter extends BaseAdapter{
                 req: req,
                 ws: ws,
                 message: message,
-                wss : this.wss
+                wss: this.wss
             };
             // var allparams = GetAllParams(req);
             var callParams = params.length ? await Promise.all(params.map(async param => {
