@@ -79,7 +79,7 @@ class ctrl3 {
 })
 class ctrl4{
     index(){
-        console.log(123)
+        return 1;
     }
 }
 
