@@ -76,15 +76,17 @@ export class WebsocketAdapter extends BaseAdapter {
         }
         // this.webSocketUsers = new WeakMap;
 
-        const heartbeat = function () {
-            this.isAlive = true;
-        }
+        // const heartbeat = function () {
+        //     this.isAlive = true;
+        // }
 
         wss.on('connection', (ws, req) => {
             each('onConnect', ws, req);
 
             //断线保护
-            ws.on("pong", heartbeat);
+            ws.on("pong", () => {
+                (ws as any).isAlive = false;
+            });
 
             ws.on('message', function incoming(message) {
                 each('onMessage', ws, req, message);

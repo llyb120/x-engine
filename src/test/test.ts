@@ -159,7 +159,7 @@ describe('test', () => {
             should.exist(client.readyState);
             client.readyState.should.eql(WebSocket.OPEN);
             done();
-        }, 500)
+        }, 50)
 
     });
 
