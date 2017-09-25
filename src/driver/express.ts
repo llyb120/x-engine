@@ -107,6 +107,23 @@ export class ExpressAdapter extends BaseAdapter{
                 }
                 return undefined;
             }));
+            //存在授权
+            if(config.authorization){
+                let canContinue = true;
+                for (const auth of Object.values(config.authorization)){
+                    if(this.context.defaultAuths[Connection.HTTP] 
+                        && (<any>this.context.defaultAuths[Connection.HTTP])[auth]){
+                        canContinue = await ((this.context.defaultAuths[Connection.HTTP] as any)[auth](ctx));
+                        if(!canContinue){
+                            break;
+                        }
+                    }
+                }
+                if(!canContinue){
+                    return;
+                }
+            }
+
             var result = await fn.apply(controller.ctrl.prototype, callParams);
             try {
                 for (const [key, val] of Object.entries(req.cookies)) {

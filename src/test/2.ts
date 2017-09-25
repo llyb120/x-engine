@@ -6,7 +6,7 @@
 // import * as http from "http"
 
 // import * as nunjucks from "nunjucks";
-// import { Connection } from '../api';
+// import { Connection, ExpressContext } from '../api';
 
 // import * as should from "should";
 
@@ -20,6 +20,7 @@
 //             return 1;
 //         }
 //     },
+//     authorization : ['testauth']
 //     // render: TEMPLATE + '/:method.html',
 //     //dataType : "json";
 // })
@@ -37,8 +38,20 @@
 //         return 123;
 //     }
 
+//     test(){
+
+//     }
+
 
 // }
+
+// X.registerAuthorization(Connection.HTTP,{
+//     testauth : function(ctx : ExpressContext){
+//         ctx.res.redirect("http://www.baidu.com");
+//         return false;
+//     }
+// })
+
 // console.log(123)
 
 // @X.Controller({
@@ -75,7 +88,5 @@
 //     app: app,
 //     server: server,
 //     crossDomain: true,
-//     socket : Connection.WebSocket
-    
 // });
 // server.listen(8080);

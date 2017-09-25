@@ -14,6 +14,10 @@ export class XEngine {
     public defaultInjects: {
         [key: string]: {}
     } = {};
+    public defaultAuths : {
+        [key : string] : {}
+    } = {};
+
     public controllers: ControllerSet<any>[] = [];
     // private wss: WebSocket.Server;
     // private socket = "no";
@@ -76,6 +80,10 @@ export class XEngine {
 
     }
 
+    registerAuthorization(from : Connection, authObj : any){
+        this.defaultAuths[from] = this.defaultAuths[from] || {};
+        this.defaultAuths[from] = Object.assign(this.defaultInjects[from],authObj);
+    }
 
 
     /**
