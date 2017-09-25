@@ -1,5 +1,5 @@
 import { V as X } from "../X";
-import { Request, Response } from "express";
+import { Request, Response, Express } from 'express';
 import * as express from "express";
 import * as path from "path";
 import * as WebSocket from "ws"
@@ -14,7 +14,13 @@ import * as supertest from "supertest";
 
 const TEMPLATE = path.resolve(__dirname, '../view');
 
+declare var describe : Function;
 
+if(typeof describe == 'undefined'){
+    (global as any).describe = function(){
+
+    }
+}
 
 @X.Controller({
     type: Connection.HTTP,
@@ -44,16 +50,38 @@ class ctrl1 {
 }
 
 @X.Controller({
-    type : Connection.HTTP,
-    url : "/auth/:method.html",
-    authorization : ['testauth']
+    type: Connection.HTTP,
+    url: "/auth/:method.html",
+    authorization: ['notlogin']
 })
-class ctrl2{
-    test(res : Response){
+class ctrl2 {
+    test(res: Response) {
 
     }
 }
 
+@X.Controller({
+    type: Connection.HTTP,
+    url: "/auth/:method",
+    authorization: ['login']
+})
+class ctrl3 {
+    login(user: any) {
+        return user ? 1 : 0;
+    }
+}
+
+
+
+@X.Controller({
+    type : Connection.HTTP,
+    url : "/",
+})
+class ctrl4{
+    index(){
+        console.log(123)
+    }
+}
 
 
 @X.Controller({
@@ -74,15 +102,33 @@ class GameController {
 }
 
 
-X.registerAuthorization(Connection.HTTP,{
-    testauth : function(ctx : ExpressContext){
+X.registerAuthorization(Connection.HTTP, {
+    notlogin: function (ctx: ExpressContext) {
         ctx.res.redirect("http://www.baidu.com");
         return false;
+    },
+    login: function (ctx: ExpressContext | any) {
+        ctx.user = {};
+        return true;
     }
+
 })
 
+var app = express();
+var request = supertest(app);
+var env = nunjucks.configure(TEMPLATE, {
+    autoescape: true,
+    express: app,
+    noCache: true
+});
+const server = http.createServer(app);
 
-
+X.startExpressServer({
+    app: app,
+    server: server,
+    crossDomain: true,
+});
+server.listen(8080);
 
 // const server = http.createServer(app);
 
@@ -98,33 +144,8 @@ X.registerAuthorization(Connection.HTTP,{
 // X.registerController(ctrl1,);
 
 describe('test', () => {
-    var app = express();
-    var request = supertest(app);
 
-    /**
-     * 启动框架
-     */
-    it("should boot success", (done) => {
-        try {
-            var env = nunjucks.configure(TEMPLATE, {
-                autoescape: true,
-                express: app,
-                noCache: true
-            });
-            const server = http.createServer(app);
 
-            X.startExpressServer({
-                app: app,
-                server: server,
-                crossDomain: true,
-            });
-            server.listen(8080);
-            done();
-
-        } catch (e) {
-            should.not.exist(e);
-        }
-    });
 
     //测试http请求
     it("should access success", (done) => {
@@ -140,14 +161,34 @@ describe('test', () => {
     /**
      * 测试不通过，被重定向
      */
-    it("test auth",(done) => {
+    it("test auth", (done) => {
         request.get("/auth/test")
             .expect(302)
-            .end((err,res) => {
+            .end((err, res) => {
                 should.exist(err);
                 // should.not.exist(err);
                 done();
             });
+    });
+
+    //已经登录的情况，保留user
+    it("test logined", async () => {
+        try{
+            const res = await request.get("/auth/login").expect(200);
+            res.text.should.be.eql('1');
+        }
+        catch(e){
+            should.not.exist(e);
+        }
+    });
+
+    it("test index",async() => {
+        try{
+            const res = await request.get('/').expect(200);
+        }
+        catch(e){
+            should.not.exist(e);
+        }
     })
 
 

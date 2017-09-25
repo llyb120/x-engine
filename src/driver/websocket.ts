@@ -88,7 +88,7 @@ export class WebsocketAdapter extends BaseAdapter {
                 (ws as any).isAlive = false;
             });
 
-            ws.on('message', function incoming(message) {
+            ws.on('message', (message) => {
                 each('onMessage', ws, req, message);
                 // console.log('received: %s', message);
             });
@@ -99,7 +99,7 @@ export class WebsocketAdapter extends BaseAdapter {
 
             //劫持API
             const fn = ws.terminate;
-            ws.terminate = function () {
+            ws.terminate = () => {
                 fn.call(ws);
                 each("onClose", ws, req);
             }
@@ -115,7 +115,7 @@ export class WebsocketAdapter extends BaseAdapter {
 
 
         //增加防断线机制
-        const interval = setInterval(function ping() {
+        const interval = setInterval(function () {
             wss.clients.forEach(function (ws) {
                 if ((ws as any).isAlive === false) return ws.terminate();
 

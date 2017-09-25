@@ -9,8 +9,8 @@ import { GetAllParams, getParameterNames } from '../utils';
 import { WebsocketAdapter } from './websocket';
 
 
-export class ExpressAdapter extends BaseAdapter{
-    public app : Express;
+export class ExpressAdapter extends BaseAdapter {
+    public app: Express;
     public server: Server;
     private isStarted = false;
 
@@ -22,8 +22,8 @@ export class ExpressAdapter extends BaseAdapter{
     //     super();
     // }
 
-    start(){
-        if(this.isStarted){
+    start() {
+        if (this.isStarted) {
             return;
         }
 
@@ -51,13 +51,18 @@ export class ExpressAdapter extends BaseAdapter{
 
         var set = new Set();
         this.context.controllers.forEach(controller => {
-            if(controller.config.type == Connection.HTTP){
+            if (controller.config.type == Connection.HTTP) {
                 var keys = Object.getOwnPropertyNames(controller.ctrl.prototype);
                 const config = controller.config as HttpController;
+                console.log(keys)
                 keys.forEach(key => {
+                    //构造器没法调用
+                    if(key == 'constructor'){
+                        return;
+                    }
                     //私有方法禁止访问
-                    if(key[0] == '_') return;
-                    
+                    if (key[0] == '_') return;
+
                     var args = [config.url.replace(":method", key), this.generateExpressFacotry(controller, key)]
                     //如果存在allowMethod
                     if (config.allowMethod) {
@@ -90,39 +95,51 @@ export class ExpressAdapter extends BaseAdapter{
         return async (req: Request, res: Response, next?: Function) => {
             //构造参数
             //先计算default
-            var ctx = {
+            var ctx: any = {
                 req: req,
                 res: res
             };
+
+            //存在授权
+            if (config.authorization) {
+                let canContinue = true;
+                for (const auth of Object.values(config.authorization)) {
+                    if (this.context.defaultAuths[Connection.HTTP]
+                        && (<any>this.context.defaultAuths[Connection.HTTP])[auth]) {
+                        canContinue = await ((this.context.defaultAuths[Connection.HTTP] as any)[auth](ctx));
+                        if (!canContinue) {
+                            break;
+                        }
+                    }
+                }
+                if (!canContinue) {
+                    return;
+                }
+
+            }
+
+
             var allparams = GetAllParams(req);
             var callParams = await Promise.all(params.map(async param => {
+                //ctx的优先级最高
+                if (param in ctx) {
+                    return ctx[param];
+                }
+                //检测默认的绑定
                 if (param in this.context.defaultInjects[Connection.HTTP]) {
                     return await (this.context.defaultInjects[Connection.HTTP] as any)[param](ctx);
                 }
+                //控制器中自定义的绑定
                 if (config.inject && config.inject[param]) {
                     return await config.inject[param](ctx);
                 }
+                //余下的绑定
                 if (allparams[param]) {
                     return allparams[param];
                 }
                 return undefined;
             }));
-            //存在授权
-            if(config.authorization){
-                let canContinue = true;
-                for (const auth of Object.values(config.authorization)){
-                    if(this.context.defaultAuths[Connection.HTTP] 
-                        && (<any>this.context.defaultAuths[Connection.HTTP])[auth]){
-                        canContinue = await ((this.context.defaultAuths[Connection.HTTP] as any)[auth](ctx));
-                        if(!canContinue){
-                            break;
-                        }
-                    }
-                }
-                if(!canContinue){
-                    return;
-                }
-            }
+            
 
             var result = await fn.apply(controller.ctrl.prototype, callParams);
             try {
@@ -137,7 +154,7 @@ export class ExpressAdapter extends BaseAdapter{
                     res.header("Content-type: application/json");
                     res.send(JSON.stringify(result));
                 }
-                else if(result){
+                else if (result) {
                     res.send(result + "");
                 }
                 else if (next) {
