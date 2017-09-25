@@ -15,12 +15,12 @@ export class ExpressAdapter extends BaseAdapter{
     private isStarted = false;
 
 
-    constructor(
-        public context : XEngine,
-        public config : ExpressConfig
-    ){
-        super();
-    }
+    // constructor(
+    //     public context : XEngine,
+    //     public config : ExpressConfig
+    // ){
+    //     super();
+    // }
 
     start(){
         if(this.isStarted){

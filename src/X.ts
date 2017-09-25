@@ -144,5 +144,6 @@ V.registerDefaultInject(Connection.WebSocket, {
     },
     error(ctx: WebSocketContext) {
         return ctx.error;
-    }
+    },
+    wss : (ctx : WebSocketContext) => ctx.wss
 })
