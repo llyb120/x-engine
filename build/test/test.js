@@ -167,7 +167,7 @@ describe('test', () => {
             should.exist(client.readyState);
             client.readyState.should.eql(WebSocket.OPEN);
             done();
-        }, 50);
+        }, 10);
     });
     it("should get some message", (done) => {
         client.onmessage = function (msg) {
