@@ -14,6 +14,7 @@ export type SocketController = {
     //必须提供
     url? : string;
     inject? : any;
+    authorization? : string[];
 }
 
 export interface HttpController {

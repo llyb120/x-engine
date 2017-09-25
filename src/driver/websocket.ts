@@ -127,6 +127,7 @@ export class WebsocketAdapter extends BaseAdapter {
 
 
     private generateWebSocketFactory(prototype: Object, key: string) {
+        console.log(key)
         var fn = (prototype as any)[key] as Function;
         var params: string[] = getParameterNames(fn);
         // let config = controller.config as SocketController;
@@ -138,6 +139,22 @@ export class WebsocketAdapter extends BaseAdapter {
                 message: message,
                 wss: this.wss
             };
+            if(config.authorization && key === 'onMessage'){
+                let canContinue = true;
+                for(const auth of config.authorization){
+                    if(this.context.defaultAuths[Connection.WebSocket]
+                        && (this.context.defaultAuths[Connection.WebSocket] as any)[auth]
+                    ){
+                        canContinue = await ((this.context.defaultAuths[Connection.WebSocket] as any)[auth](ctx));
+                        if(!canContinue){
+                            break;
+                        }
+                    }
+                } 
+                if(!canContinue){
+                    return;
+                }
+            }
             // var allparams = GetAllParams(req);
             var callParams = params.length ? await Promise.all(params.map(async param => {
                 if (param in this.context.defaultInjects[Connection.WebSocket]) {
