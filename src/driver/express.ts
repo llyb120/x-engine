@@ -54,7 +54,7 @@ export class ExpressAdapter extends BaseAdapter {
             if (controller.config.type == Connection.HTTP) {
                 var keys = Object.getOwnPropertyNames(controller.ctrl.prototype);
                 const config = controller.config as HttpController;
-                console.log(keys)
+                // console.log(keys)
                 keys.forEach(key => {
                     //构造器没法调用
                     if(key == 'constructor'){

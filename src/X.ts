@@ -133,6 +133,9 @@ V.registerDefaultInject(Connection.HTTP, {
     },
     query(ctx: ExpressContext) {
         return ctx.req.query;
+    },
+    params(ctx : ExpressContext){
+        return GetAllParams(ctx.req);
     }
 });
 

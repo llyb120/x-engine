@@ -6,7 +6,7 @@ const fuse = FuseBox.init({
 });
 fuse.bundle("bundle")
     .watch('src/**')
-    .instructions(`>[test/2.ts] + [**/*.ts] + [**/*.js] ]`)
+    .instructions(`>[test/test.ts] + [**/*.ts] + [**/*.js] ]`)
     .completed(proc => proc.start());
 
 fuse.run();
