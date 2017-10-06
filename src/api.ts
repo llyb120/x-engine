@@ -25,7 +25,8 @@ export interface HttpController {
     render? : string;
     dataType? : "html" | "json";
     // type? : "html" | "json",
-    authorization? : string[]
+    authorization? : string[],
+    common? : Function[] | Function
 }
 
 export type ControllerConfig = SocketController | HttpController;

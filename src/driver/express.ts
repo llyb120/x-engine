@@ -118,6 +118,20 @@ export class ExpressAdapter extends BaseAdapter {
 
             }
 
+            //通用参数
+            let commons = {};
+            if(config.common){
+                if(!Array.isArray(config.common)){
+                    config.common = [config.common];
+                }
+                for(const common of config.common){
+                    let _ret = await common.apply(controller.ctrl.prototype,ctx);
+                    if(_ret){
+                        commons = Object.assign(commons,_ret);
+                    }
+                }
+            }
+
 
             var allparams = GetAllParams(req);
             var callParams = await Promise.all(params.map(async param => {
@@ -142,6 +156,9 @@ export class ExpressAdapter extends BaseAdapter {
             
 
             var result = await fn.apply(controller.ctrl.prototype, callParams);
+            if(Object.keys(commons) && typeof result == 'object'){
+                result = Object.assign(commons,result);
+            }
             try {
                 for (const [key, val] of Object.entries(req.cookies)) {
                     res.cookie(key, val);

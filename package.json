@@ -4,9 +4,11 @@
   "description": "",
   "main": "./build/index.js",
   "dependencies": {
+    "@types/nunjucks": "0.0.33",
     "body-parser": "^1.18.1",
     "cookie-parser": "^1.4.3",
     "express": "^4.15.4",
+    "nunjucks": "^3.0.1",
     "ws": "^3.2.0"
   },
   "devDependencies": {

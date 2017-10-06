@@ -30,23 +30,41 @@ if(typeof describe == 'undefined'){
             return 1;
         }
     },
+    common : () => {
+        return {
+            cubi : 2
+        }
+    }
     // render: TEMPLATE + '/:method.html',
     //dataType : "json";
 })
 class ctrl1 {
-    test1(req: Request, res: Response, fuck: string, query: any, body: any, c: string) {
-        console.log(query, body, c);
-        return {
-            guichu: 123321
-        }
-        // res.redirect("http://www.baidu.com")
-    }
+
 
     test2(res: Response) {
         return 123;
     }
 
 
+}
+
+@X.Controller({
+    type : Connection.HTTP,
+    url : "/test/:method.html",
+    common : () => {
+        return {
+            cubi : 2
+        } 
+    },
+    dataType : "json"
+})
+class ctrl110{
+    test1(req: Request, res: Response, fuck: string, query: any, body: any, c: string) {
+        return {
+            guichu: 123321
+        }
+        // res.redirect("http://www.baidu.com")
+    }
 }
 
 @X.Controller({
@@ -144,8 +162,13 @@ server.listen(8080);
 // X.registerController(ctrl1,);
 
 describe('test', () => {
-
-
+ 
+ 
+    it("should get common",async() => {
+        let result = await request.get('/test/test1.html').expect(200);
+        const json = JSON.parse(result.text);
+        should.exist(json.cubi);
+    });
 
     //测试http请求
     it("should access success", (done) => {
