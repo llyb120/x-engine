@@ -156,7 +156,7 @@ export class ExpressAdapter extends BaseAdapter {
             
 
             var result = await fn.apply(controller.ctrl.prototype, callParams);
-            if(Object.keys(commons) && typeof result == 'object'){
+            if(Object.keys(commons).length && typeof result == 'object'){
                 result = Object.assign(commons,result);
             }
             try {
