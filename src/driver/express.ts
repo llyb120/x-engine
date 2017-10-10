@@ -104,18 +104,20 @@ export class ExpressAdapter extends BaseAdapter {
             if (config.authorization) {
                 let canContinue = true;
                 for (const auth of Object.values(config.authorization)) {
-                    if (this.context.defaultAuths[Connection.HTTP]
+                    if(typeof auth === 'function'){
+                        canContinue = await auth(ctx);
+                    }
+                    else if (this.context.defaultAuths[Connection.HTTP]
                         && (<any>this.context.defaultAuths[Connection.HTTP])[auth]) {
                         canContinue = await ((this.context.defaultAuths[Connection.HTTP] as any)[auth](ctx));
-                        if (!canContinue) {
-                            break;
-                        }
+                    }
+                    if(!canContinue){
+                        break;
                     }
                 }
                 if (!canContinue) {
                     return;
                 }
-
             }
 
             //通用参数

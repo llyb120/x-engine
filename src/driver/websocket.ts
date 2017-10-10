@@ -139,19 +139,22 @@ export class WebsocketAdapter extends BaseAdapter {
                 message: message,
                 wss: this.wss
             };
-            if(config.authorization && key === 'onMessage'){
+            if (config.authorization && key === 'onMessage') {
                 let canContinue = true;
-                for(const auth of config.authorization){
-                    if(this.context.defaultAuths[Connection.WebSocket]
-                        && (this.context.defaultAuths[Connection.WebSocket] as any)[auth]
-                    ){
-                        canContinue = await ((this.context.defaultAuths[Connection.WebSocket] as any)[auth](ctx));
-                        if(!canContinue){
-                            break;
-                        }
+                for (const auth of config.authorization) {
+                    if (typeof auth === 'function') {
+                        canContinue = auth(ctx);
                     }
-                } 
-                if(!canContinue){
+                    else if (this.context.defaultAuths[Connection.WebSocket]
+                        && (this.context.defaultAuths[Connection.WebSocket] as any)[auth]
+                    ) {
+                        canContinue = await ((this.context.defaultAuths[Connection.WebSocket] as any)[auth](ctx));
+                    }
+                    if (!canContinue) {
+                        break;
+                    }
+                }
+                if (!canContinue) {
                     return;
                 }
             }

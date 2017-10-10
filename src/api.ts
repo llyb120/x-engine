@@ -14,8 +14,10 @@ export type SocketController = {
     //必须提供
     url? : string;
     inject? : any;
-    authorization? : string[];
+    authorization? : (string | AuthCallback)[];
 }
+
+type AuthCallback = {(ctx? : any) : boolean};
 
 export interface HttpController {
     type : Connection;
@@ -25,7 +27,7 @@ export interface HttpController {
     render? : string;
     dataType? : "html" | "json";
     // type? : "html" | "json",
-    authorization? : string[],
+    authorization? : (string | AuthCallback)[],
     common? : Function[] | Function
 }
 
