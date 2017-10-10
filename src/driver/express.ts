@@ -57,7 +57,7 @@ export class ExpressAdapter extends BaseAdapter {
                 // console.log(keys)
                 keys.forEach(key => {
                     //构造器没法调用
-                    if(key == 'constructor'){
+                    if (key == 'constructor') {
                         return;
                     }
                     //私有方法禁止访问
@@ -104,14 +104,14 @@ export class ExpressAdapter extends BaseAdapter {
             if (config.authorization) {
                 let canContinue = true;
                 for (const auth of Object.values(config.authorization)) {
-                    if(typeof auth === 'function'){
+                    if (typeof auth === 'function') {
                         canContinue = await auth(ctx);
                     }
                     else if (this.context.defaultAuths[Connection.HTTP]
                         && (<any>this.context.defaultAuths[Connection.HTTP])[auth]) {
                         canContinue = await ((this.context.defaultAuths[Connection.HTTP] as any)[auth](ctx));
                     }
-                    if(!canContinue){
+                    if (!canContinue) {
                         break;
                     }
                 }
@@ -122,14 +122,14 @@ export class ExpressAdapter extends BaseAdapter {
 
             //通用参数
             let commons = {};
-            if(config.common){
-                if(!Array.isArray(config.common)){
+            if (config.common) {
+                if (!Array.isArray(config.common)) {
                     config.common = [config.common];
                 }
-                for(const common of config.common){
-                    let _ret = await common.apply(controller.ctrl.prototype,ctx);
-                    if(_ret){
-                        commons = Object.assign(commons,_ret);
+                for (const common of config.common) {
+                    let _ret = await common.apply(controller.ctrl.prototype, ctx);
+                    if (_ret) {
+                        commons = Object.assign(commons, _ret);
                     }
                 }
             }
@@ -155,29 +155,33 @@ export class ExpressAdapter extends BaseAdapter {
                 }
                 return undefined;
             }));
-            
 
-            var result = await fn.apply(controller.ctrl.prototype, callParams);
-            if(Object.keys(commons).length && typeof result == 'object'){
-                result = Object.assign(commons,result);
-            }
+
+
             try {
                 for (const [key, val] of Object.entries(req.cookies)) {
                     res.cookie(key, val);
                 }
-                var render;
-                if (render = config.render) {
-                    res.render(render.replace(":method", key), result);
+                var result = await fn.apply(controller.ctrl.prototype, callParams);
+                if (Object.keys(commons).length && typeof result == 'object') {
+                    result = Object.assign(commons, result);
                 }
-                else if (config.dataType == 'json') {
-                    res.header("Content-type: application/json");
-                    res.send(JSON.stringify(result));
-                }
-                else if (result) {
-                    res.send(result + "");
-                }
-                else if (next) {
-                    next();
+
+                if(!res.headersSent){
+                    var render;
+                    if (render = config.render) {
+                        res.render(render.replace(":method", key), result);
+                    }
+                    else if (config.dataType == 'json') {
+                        res.header("Content-type: application/json");
+                        res.send(JSON.stringify(result));
+                    }
+                    else if (result) {
+                        res.send(result + "");
+                    }
+                    else if (next) {
+                        next();
+                    }
                 }
                 // res.end();
             }
