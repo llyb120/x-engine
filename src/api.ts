@@ -17,7 +17,7 @@ export type SocketController = {
     authorization? : (string | AuthCallback)[];
 }
 
-type AuthCallback = {(ctx? : any) : boolean};
+type AuthCallback = {(ctx? : any) : boolean | Promise<boolean>};
 
 export interface HttpController {
     type : Connection;
