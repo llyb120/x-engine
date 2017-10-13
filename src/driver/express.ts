@@ -163,11 +163,16 @@ export class ExpressAdapter extends BaseAdapter {
                     res.cookie(key, val);
                 }
                 var result = await fn.apply(controller.ctrl.prototype, callParams);
-                if (Object.keys(commons).length && typeof result == 'object') {
-                    result = Object.assign(commons, result);
+                if (Object.keys(commons).length) {
+                    if (!result) {
+                        commons = result;
+                    }
+                    else if (typeof result == 'object') {
+                        result = Object.assign(commons, result);
+                    }
                 }
 
-                if(!res.headersSent){
+                if (!res.headersSent) {
                     var render;
                     if (render = config.render) {
                         res.render(render.replace(":method", key), result);
