@@ -127,7 +127,7 @@ export class ExpressAdapter extends BaseAdapter {
                     config.common = [config.common];
                 }
                 for (const common of config.common) {
-                    let _ret = await common.apply(controller.ctrl.prototype, ctx);
+                    let _ret = await common.call(controller.ctrl.prototype, ctx);
                     if (_ret) {
                         commons = Object.assign(commons, _ret);
                     }
