@@ -84,9 +84,9 @@ export class WebsocketAdapter extends BaseAdapter {
             each('onConnect', ws, req);
 
             //断线保护
-            ws.on("pong", () => {
-                (ws as any).isAlive = false;
-            });
+            // ws.on("pong", () => {
+            //     (ws as any).isAlive = false;
+            // });
 
             ws.on('message', (message) => {
                 each('onMessage', ws, req, message);
@@ -97,12 +97,16 @@ export class WebsocketAdapter extends BaseAdapter {
                 each('onError', ws, req, undefined, error);
             });
 
+            ws.on("close", (code, message) => {
+                each("onClose", ws, req, message);
+            })
+
             //劫持API
-            const fn = ws.terminate;
-            ws.terminate = () => {
-                fn.call(ws);
-                each("onClose", ws, req);
-            }
+            // const fn = ws.terminate;
+            // ws.terminate = () => {
+            //     fn.call(ws);
+            //     each("onClose", ws, req);
+            // }
 
         });
 
@@ -115,14 +119,14 @@ export class WebsocketAdapter extends BaseAdapter {
 
 
         //增加防断线机制
-        const interval = setInterval(function () {
-            wss.clients.forEach(function (ws) {
-                if ((ws as any).isAlive === false) return ws.terminate();
+        // const interval = setInterval(function () {
+        //     wss.clients.forEach(function (ws) {
+        //         if ((ws as any).isAlive === false) return ws.terminate();
 
-                (ws as any).isAlive = false;
-                ws.ping('', false, true);
-            });
-        }, 30000);
+        //         (ws as any).isAlive = false;
+        //         ws.ping('', false, true);
+        //     });
+        // }, 30000);
     }
 
 
