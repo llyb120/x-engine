@@ -62,12 +62,14 @@ export interface InjectParams{
 
 
 export interface XEngineConfig{
-    app? : any;
-    server? : Server;
+    // app? : any;
+    // server? : Server;
     socket? : Connection[];
 }
 
 export interface ExpressConfig extends XEngineConfig{
-    app : Express,
+    // app? : Express,
     crossDomain? : boolean;
+    port : number;
+    init? : (server? : Server,app? : Express) => void
 }

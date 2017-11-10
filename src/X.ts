@@ -7,6 +7,7 @@ import * as WebSocket from 'ws';
 import { Server, IncomingMessage } from 'http';
 import { WebsocketAdapter } from './driver/websocket';
 import { ExpressAdapter } from './driver/express';
+import * as http from 'http';
 
 
 export class XEngine {
@@ -14,16 +15,31 @@ export class XEngine {
     public defaultInjects: {
         [key: string]: {}
     } = {};
-    public defaultAuths : {
-        [key : string] : {}
+    public defaultAuths: {
+        [key: string]: {}
     } = {};
 
     public controllers: ControllerSet<any>[] = [];
+
+    public controllersMap: {
+        [key: string]: {
+            ctrl: Controller<any>,
+            config: any,
+            methodsParam: {
+                [name : string] : any[]
+            }
+        }
+    } = {};
+
+    // private expressControllerBuffer : string[] = [];
+
     // private wss: WebSocket.Server;
     // private socket = "no";
 
     public expressAdapter: ExpressAdapter;
     public websocketAdapter: WebsocketAdapter;
+
+    public server: Server;
 
 
     /**
@@ -34,14 +50,18 @@ export class XEngine {
     constructor() {
         this.defaultInjects[Connection.HTTP] = {};
         this.defaultInjects[Connection.WebSocket] = {};
+
+        this.expressAdapter = new ExpressAdapter(this);
+        this.server = http.createServer(this.expressAdapter.app);
+
     }
 
-    
+
 
 
 
     protected startWebSocket() {
-        
+
 
     }
 
@@ -49,19 +69,22 @@ export class XEngine {
      * 启动操作
      * @param app 
      */
-    startExpressServer(config: ExpressConfig) {
-        if (!config.app) {
-            throw new Error("没有传入express实例！");
-        }
+    async startExpressServer(config: ExpressConfig) {
+        // if (!config.app) {
+        // throw new Error("没有传入express实例！");
+        // }
 
-        this.expressAdapter = new ExpressAdapter(this, config);
-        this.expressAdapter.start();
+        // this.expressAdapter = new ExpressAdapter(this);
+        await this.expressAdapter.start(config);
 
         //websocket
-        if(this.controllers.some(item => item.config.type == Connection.WebSocket)){
+        if (this.controllers.some(item => item.config.type == Connection.WebSocket)) {
             this.websocketAdapter = new WebsocketAdapter(this, config);
             this.websocketAdapter.start();
         }
+
+        this.server.listen(config.port);
+        // return this.expressAdapter.app;
 
     }
 
@@ -76,13 +99,47 @@ export class XEngine {
         this.controllers.push({
             ctrl: ctrl,
             config: (config || {})
-        })
+        });
+
+        //dev
+        this.controllersMap[name] = {
+            ctrl,
+            config: config || {},
+            methodsParam: {}
+        }
+
+        //分发
+        if (config.type === Connection.HTTP) {
+            //如果存在这个，那么立刻注册
+            // if(this.expressAdapter){
+
+            //生成所有函数的参数表
+            let fnNames = Object.getOwnPropertyNames(ctrl.prototype);
+            for(const fnName of fnNames){
+                if(fnName === 'constructor' || fnName[0] === '_'){
+                    continue;
+                }
+                let params = getParameterNames(ctrl.prototype[fnName]);
+                this.controllersMap[name].methodsParam[fnName] = params;
+            }
+            this.expressAdapter.onControllerRegister(name);
+
+            // }
+            //否则，等start开始的时候重新注册
+            // else{
+            // this.expressControllerBuffer.push(name);
+            // }
+
+        }
+        else {
+
+        }
 
     }
 
-    registerAuthorization(from : Connection, authObj : any){
+    registerAuthorization(from: Connection, authObj: any) {
         this.defaultAuths[from] = this.defaultAuths[from] || {};
-        this.defaultAuths[from] = Object.assign(this.defaultInjects[from],authObj);
+        this.defaultAuths[from] = Object.assign(this.defaultInjects[from], authObj);
     }
 
 
@@ -134,7 +191,7 @@ V.registerDefaultInject(Connection.HTTP, {
     query(ctx: ExpressContext) {
         return ctx.req.query;
     },
-    params(ctx : ExpressContext){
+    params(ctx: ExpressContext) {
         return GetAllParams(ctx.req);
     }
 });
@@ -148,5 +205,5 @@ V.registerDefaultInject(Connection.WebSocket, {
     error(ctx: WebSocketContext) {
         return ctx.error;
     },
-    wss : (ctx : WebSocketContext) => ctx.wss
+    wss: (ctx: WebSocketContext) => ctx.wss
 })

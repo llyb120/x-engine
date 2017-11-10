@@ -38,7 +38,7 @@ export class WebsocketAdapter extends BaseAdapter {
         this.isStarted = true;
         this.collectControllers();
 
-        const wss = this.wss = new WebSocket.Server({ server: this.config.server });
+        const wss = this.wss = new WebSocket.Server({ server: this.context.server });
         const factoryMap = new WeakMap<Function, Function>();
         //事件分发
         const each = (functionName: string, ws: WebSocket, req: IncomingMessage, message?: any, error?: Error) => {
