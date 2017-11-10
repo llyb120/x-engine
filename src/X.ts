@@ -62,8 +62,6 @@ export class XEngine {
 
 
 
-
-
     protected startWebSocket() {
 
 
@@ -127,7 +125,6 @@ export class XEngine {
                 this.controllersMap[name].methodsParam[fnName] = params;
             }
             this.expressAdapter.onControllerRegister(name);
-            console.log("register controller,", name);
 
             // }
             //否则，等start开始的时候重新注册
