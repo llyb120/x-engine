@@ -8,6 +8,10 @@ import { Server, IncomingMessage } from 'http';
 import { WebsocketAdapter } from './driver/websocket';
 import { ExpressAdapter } from './driver/express';
 import * as http from 'http';
+import * as fs from 'fs';
+import * as glob from 'glob';
+import * as path from 'path';
+import * as vm from 'vm';
 
 
 export class XEngine {
@@ -26,7 +30,7 @@ export class XEngine {
             ctrl: Controller<any>,
             config: any,
             methodsParam: {
-                [name : string] : any[]
+                [name: string]: any[]
             }
         }
     } = {};
@@ -115,14 +119,15 @@ export class XEngine {
 
             //生成所有函数的参数表
             let fnNames = Object.getOwnPropertyNames(ctrl.prototype);
-            for(const fnName of fnNames){
-                if(fnName === 'constructor' || fnName[0] === '_'){
+            for (const fnName of fnNames) {
+                if (fnName === 'constructor' || fnName[0] === '_') {
                     continue;
                 }
                 let params = getParameterNames(ctrl.prototype[fnName]);
                 this.controllersMap[name].methodsParam[fnName] = params;
             }
             this.expressAdapter.onControllerRegister(name);
+            console.log("register controller,", name);
 
             // }
             //否则，等start开始的时候重新注册
@@ -160,6 +165,95 @@ export class XEngine {
         return function (target: Controller<T>) {
             V.registerController(target, config);
         }
+    }
+
+
+    // addHotUpdateController(fileName : string,controller : Function){
+    //     let name = controller.name;
+    //     fs.watchFile(fileName,() => {
+    //         // this.controllersMap
+
+    //     });
+    // }
+
+    private needToUpdate = new Set();
+    private updateTimer: any;
+
+    async addHotUpdateDir(dir: string) {
+        dir = path.resolve(dir);
+
+        let map: any = {};
+        let loadAllFiles = () => {
+            return new Promise((resolve, reject) => {
+                glob(path.resolve(dir, '*'), (err, files) => {
+                    if (err) {
+                        return;
+                    }
+                    files.forEach(file => {
+                        let match = file.match(/([^\/]+\.(?:js|ts))$/);
+                        if (!match) {
+                            return;
+                        }
+                        map[match[1]] = file;
+                    });
+                    resolve('ok');
+                });
+            });;
+        }
+
+        let updateCode = (filePath: string) => {
+            //缓存原来的代码，防止热更新失败
+            let codeIndex = path.resolve(filePath);
+            let temp = require.cache[codeIndex];
+            console.log("开始热更新代码",filePath);
+            fs.readFile(filePath, (err, data) => {
+                if (err) {
+                    return;
+                }
+                try {
+                    let code = new vm.Script(data.toString());
+                    delete require.cache[codeIndex];
+                    require(filePath);
+                    console.log("热更新成功！");
+                } catch (e) {
+                    console.log("热更新失败！编译代码出错");
+                    require.cache[path.resolve(filePath)] = temp;
+                }
+            });
+        };
+
+        await loadAllFiles();
+
+        let needToUpdate: any = {};
+        let updateTimer: any = null;
+
+        fs.watch(dir, { recursive: true }, (eventType, fileName) => {
+            needToUpdate[fileName] = 1;
+
+            if (updateTimer) {
+                clearTimeout(updateTimer);
+                updateTimer = null;
+            }
+            updateTimer = setTimeout(() => {
+                if (Object.keys(needToUpdate).length === 0) {
+                    return;
+                }
+                // console.log('hot upadte', needToUpdate);
+                for (const file in needToUpdate) {
+                    if (!map[file]) {
+                        continue;
+                    }
+                    updateCode(map[file]);
+                }
+
+                //更新此目录
+                loadAllFiles().then(() => {
+                    //清空加载器
+                    needToUpdate = {};
+                });
+
+            }, 50);
+        });
     }
 
 }

@@ -11,6 +11,7 @@ import { Connection, Controller, ExpressContext } from '../api';
 import * as should from "should";
 import * as supertest from "supertest";
 import fetch from "node-fetch";
+import { ctrl1 } from './hot/1';
 
 
 const TEMPLATE = path.resolve(__dirname, '../view');
@@ -23,120 +24,13 @@ if(typeof describe == 'undefined'){
     }
 }
 
-@X.Controller({
-    type: Connection.HTTP,
-    url: "/test/:method.html",
-    inject: {
-        fuck() {
-            return 1;
-        }
-    },
-    common : () => {
-        return {
-            cubi : 2
-        }
-    }
-    // render: TEMPLATE + '/:method.html',
-    //dataType : "json";
-})
-class ctrl1 {
-
-
-    test2(res: Response) {
-        return 123;
-    }
-
-
-}
-
-@X.Controller({
-    type : Connection.HTTP,
-    url : "/test/:method.html",
-    common : () => {
-        return {
-            cubi : 2
-        } 
-    },
-    dataType : "json"
-})
-class ctrl110{
-    test1(req: Request, res: Response, fuck: string, query: any, body: any, c: string) {
-        return {
-            guichu: 123321
-        }
-        // res.redirect("http://www.baidu.com")
-    }
-}
-
-@X.Controller({
-    type: Connection.HTTP,
-    url: "/auth/:method",
-    authorization: ['notlogin']
-})
-class ctrl2 {
-    test(res: Response) {
-
-    }
-}
-
-@X.Controller({
-    type: Connection.HTTP,
-    url: "/auth/:method",
-    authorization: ['login']
-})
-class ctrl3 {
-    login(user: any) {
-        return user ? 1 : 0;
-    }
-}
-
-
-
-@X.Controller({
-    type : Connection.HTTP,
-    url : "/",
-})
-class ctrl4{
-    index(){
-        return 1;
-    }
-}
-
-
-@X.Controller({
-    type: Connection.WebSocket,
-    url: "/liaoyang"
-})
-class GameController {
-
-    onConnect() {
-    }
-
-    onMessage(ws: WebSocket, req: any, message: string) {
-        return 'pong';
-        // ws.send("pong");
-    }
-
-
-}
-
-
-X.registerAuthorization(Connection.HTTP, {
-    notlogin: function (ctx: ExpressContext) {
-        ctx.res.redirect("http://www.baidu.com");
-        return false;
-    },
-    login: function (ctx: ExpressContext | any) {
-        ctx.user = {};
-        return true;
-    }
-
-})
+ctrl1;
 
 var app = express();
 var request : supertest.SuperTest<supertest.Test>;
 
 // const server = http.createServer(app);
+X.addHotUpdateDir(path.resolve(__dirname,'hot'));
 
 X.startExpressServer({
     // app: app,
@@ -157,6 +51,7 @@ X.startExpressServer({
     port : 8080
 
 });
+
 // server.listen(8080);
 
 // const server = http.createServer(app);
